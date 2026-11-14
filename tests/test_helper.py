@@ -8,6 +8,7 @@ import pytest
 from tennishw._helper import (
     _format_player_name,
     _is_female_format,
+    _parse_dob,
     _parse_matches_js,
     _records_to_frame,
 )
@@ -105,3 +106,10 @@ def test_frame_drops_missing_opponent_age(male_js):
     df = _records_to_frame(records, RAFA_DOB)
     assert len(df) == 2
     assert df["opponent_age"].notna().all()
+    
+# ---- player date of birth ----
+
+def test_parse_dob():
+    page = "var fullname = 'Serena Williams';\nvar dob = 19810926;\n"
+    assert _parse_dob(page) == SERENA_DOB
+    assert _parse_dob("no dob here") is None
