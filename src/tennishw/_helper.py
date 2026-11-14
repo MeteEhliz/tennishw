@@ -44,3 +44,28 @@ def _opponent_age(raw, match_dates, female):
         dob = pd.to_datetime(raw, format="%Y%m%d", errors="coerce")
         return _years_between(dob, match_dates)
     return pd.to_numeric(raw, errors="coerce")
+
+# positions of the fields we use in each match record
+DATE, TOURNAMENT, SURFACE, RESULT, OPPONENT = 0, 1, 2, 4, 11
+
+
+def _match_info(raw):
+    """Descriptive columns: date, tournament, surface, result, opponent."""
+    return pd.DataFrame({
+        "date": pd.to_datetime(raw[DATE], format="%Y%m%d", errors="coerce"),
+        "tournament": raw[TOURNAMENT],
+        "surface": raw[SURFACE],
+        "result": raw[RESULT],
+        "opponent": raw[OPPONENT],
+    })
+
+
+def _records_to_frame(records, player_dob):
+    """Build the clean data frame used for plotting from raw match records."""
+    raw = pd.DataFrame([r[: OPP_AGE_OR_DOB + 1] for r in records])
+    df = _match_info(raw)
+    df["player_age"] = _years_between(pd.Series(player_dob, index=df.index), df["date"])
+    df["opponent_age"] = _opponent_age(raw[OPP_AGE_OR_DOB], df["date"], _is_female_format(records))
+    df["age_diff"] = df["player_age"] - df["opponent_age"]
+    df = df[df["result"].isin(["W", "L"])].dropna(subset=["player_age", "opponent_age"])
+    return df.sort_values("date").reset_index(drop=True)
