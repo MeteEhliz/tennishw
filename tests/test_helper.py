@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tennishw._helper import _format_player_name, _parse_matches_js
+from tennishw._helper import _format_player_name, _is_female_format, _parse_matches_js
 
 FAKE_DATA = Path(__file__).parent / "fake_data"
 
@@ -54,3 +54,9 @@ def test_parse_matches_js_male(male_js):
 def test_parse_matches_js_missing_variable():
     with pytest.raises(ValueError, match="morematchmx"):
         _parse_matches_js("var somethingelse = 1;")
+        
+# ---- female vs male detection ----
+
+def test_female_vs_male_detection(female_js, male_js):
+    assert _is_female_format(_parse_matches_js(female_js))
+    assert not _is_female_format(_parse_matches_js(male_js))
