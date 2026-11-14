@@ -3,6 +3,7 @@
 import json
 import re
 
+import pandas as pd
 
 def _format_player_name(name):
     """Turn 'serena williams' / 'Serena Williams' / 'SerenaWilliams' into 'SerenaWilliams'."""
@@ -28,3 +29,18 @@ def _is_female_format(records):
     """Female files store opponent DOB (YYYYMMDD); male files store opponent age (float)."""
     values = [r[OPP_AGE_OR_DOB] for r in records if r[OPP_AGE_OR_DOB]]
     return bool(values) and all(re.fullmatch(r"\d{8}", v) for v in values)
+
+DAYS_PER_YEAR = 365.25
+
+
+def _years_between(start, end):
+    """Age in (fractional) years between two date columns."""
+    return (end - start).dt.days / DAYS_PER_YEAR
+
+
+def _opponent_age(raw, match_dates, female):
+    """Opponent age at match time, from DOB (female files) or directly (male files)."""
+    if female:
+        dob = pd.to_datetime(raw, format="%Y%m%d", errors="coerce")
+        return _years_between(dob, match_dates)
+    return pd.to_numeric(raw, errors="coerce")
