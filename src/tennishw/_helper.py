@@ -20,3 +20,11 @@ def _parse_matches_js(js_text):
     if match is None:
         raise ValueError("Could not find 'morematchmx' match data in the JS content.")
     return json.loads(match.group(1))
+
+OPP_AGE_OR_DOB = 16  # position of opponent's birth date (female) or age (male)
+
+
+def _is_female_format(records):
+    """Female files store opponent DOB (YYYYMMDD); male files store opponent age (float)."""
+    values = [r[OPP_AGE_OR_DOB] for r in records if r[OPP_AGE_OR_DOB]]
+    return bool(values) and all(re.fullmatch(r"\d{8}", v) for v in values)
