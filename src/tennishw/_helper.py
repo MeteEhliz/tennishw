@@ -69,3 +69,13 @@ def _records_to_frame(records, player_dob):
     df["age_diff"] = df["player_age"] - df["opponent_age"]
     df = df[df["result"].isin(["W", "L"])].dropna(subset=["player_age", "opponent_age"])
     return df.sort_values("date").reset_index(drop=True)
+
+_DOB_PATTERN = re.compile(r"var\s+dob\s*=\s*['\"]?(\d{8})")
+
+
+def _parse_dob(page_text):
+    """Find the player's date of birth (`var dob = YYYYMMDD`) in a player page."""
+    match = _DOB_PATTERN.search(page_text)
+    if match is None:
+        return None
+    return pd.to_datetime(match.group(1), format="%Y%m%d")
